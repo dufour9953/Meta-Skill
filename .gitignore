@@ -1,0 +1,21 @@
+# Test projects (local only, never shipped)
+ai-skill-forge/
+
+# Internal planning (not shipped)
+ROADMAP.md
+
+# Dependencies
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Environment
+.env
+.env.local
+.env.*.local
