@@ -1,4 +1,0 @@
-{
-  "note": "Persisted terminal tracking. Antigravity loses CommandIds when conversation context truncates. This file preserves them for session continuity.",
-  "active_sessions": []
-}

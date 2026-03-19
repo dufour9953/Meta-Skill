@@ -15,9 +15,11 @@ everything, generates its own skills, and levels up with each session.
 3. Start Claude Code.
 4. That's it. Taproot initializes automatically.
 
-On first boot, Taproot asks one question: "What is this project's most
-important goal?" Your answer becomes the **North Star** that anchors every
-session. Then it enters the Planning Phase.
+On first boot, Taproot runs a quick onboarding: your project's **North Star**
+(the most important goal), your **agent's name** (or skip and let it suggest
+one), and your agent's **disposition** (Sentinel, Architect, Scholar, or let
+it evolve naturally). Then it generates a procedural avatar, creates your
+Agent Skill Tree, and enters the Planning Phase.
 
 ## What's in this Repo
 
@@ -161,15 +163,18 @@ Taproot creates and maintains this structure inside your project:
 
 ```
 memory/
-  NORTH_STAR.md         <- Your project's guiding goal (immutable)
-  CHANGELOG.md          <- One-line log per session (append-only)
-  skill-graph.json      <- Skill ecosystem data (feeds visualization)
-  skill-graph.html      <- Interactive visualization (open in browser)
-  sessions/             <- Full session records (decisions, work, handoff)
-  directives/           <- Permanent rules ("always do X", "never do Y")
-  skills/               <- Auto-generated reusable templates and checklists
-  plans/                <- Build plans (versioned, approved by user)
-  research/             <- Research swarm briefs and findings
+  NORTH_STAR.md           <- Your project's guiding goal (immutable)
+  agent-identity.json     <- Agent name, class, level, XP, avatar config
+  avatar.svg              <- Procedural avatar (or link to custom image)
+  CHANGELOG.md            <- One-line log per session (append-only)
+  skill-graph.json        <- Skill ecosystem data (feeds visualization)
+  skill-graph.html        <- Interactive D3 graph (open in browser)
+  agent-skill-tree.html   <- Full Agent Skill Tree dashboard (open in browser)
+  sessions/               <- Full session records (decisions, work, handoff)
+  directives/             <- Permanent rules ("always do X", "never do Y")
+  skills/                 <- Auto-generated reusable templates and checklists
+  plans/                  <- Build plans (versioned, approved by user)
+  research/               <- Research swarm briefs and findings
 ```
 
 ## The Dual Engine: Skill Generation

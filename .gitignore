@@ -6,11 +6,16 @@ ROADMAP.md
 SKOOL-POST-DRAFT.md
 MASTER-TRACKER.md
 
+# Agent-status-page build artifacts (not part of the skill)
+agent-status-page/CLAUDE.md
+agent-status-page/.terminal-state.json
+agent-status-page/memory/
+
 # Dependencies
 node_modules/
 
 # OS
-.DS_Store
+**/.DS_Store
 Thumbs.db
 
 # IDE
