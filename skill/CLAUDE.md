@@ -299,7 +299,9 @@ read this file to render the skill ecosystem.
       "description": "Session-intelligent coding agent...",
       "origin": "designed",
       "status": "active",
-      "createdAt": "YYYY-MM-DD"
+      "createdAt": "YYYY-MM-DD",
+      "xp": 0,
+      "rarity": "legendary"
     },
     {
       "id": "skill-name",
@@ -309,7 +311,9 @@ read this file to render the skill ecosystem.
       "origin": "gap-detected | pattern-amplified",
       "status": "active",
       "createdAt": "YYYY-MM-DD",
-      "parent": "taproot"
+      "parent": "taproot",
+      "xp": 50,
+      "rarity": "common"
     }
   ],
   "links": [
@@ -323,17 +327,57 @@ read this file to render the skill ecosystem.
   "meta": {
     "lastUpdated": "YYYY-MM-DD HH:MM",
     "totalSessions": 0,
-    "totalSkills": 0
+    "totalSkills": 0,
+    "totalXP": 0,
+    "agentLevel": 1,
+    "agentClass": "Novice"
   }
 }
 ```
+
+**XP rules (calculate at every session-end):**
+- Gap-fix skill created: **50 XP**
+- Pattern-amplified skill created: **100 XP**
+- Directive extracted: **25 XP**
+- Session completed: **10 XP**
+- Research swarm completed: **75 XP**
+- Each node's `xp` field reflects its individual contribution.
+- `meta.totalXP` is the sum of all node XP plus session/swarm XP.
+
+**Level thresholds:**
+
+| Level | XP Required | Title |
+|-------|------------|-------|
+| 1 | 0 | Novice |
+| 2 | 100 | Apprentice |
+| 3 | 250 | Journeyman |
+| 4 | 500 | Specialist |
+| 5 | 1000 | Expert |
+| 6 | 2000 | Master |
+| 7 | 3500 | Grandmaster |
+| 8 | 5000 | Sage |
+| 9 | 7500 | Oracle |
+| 10 | 10000 | Transcendent |
+
+**Rarity tiers (assign when creating each skill node):**
+- **Common**: First instance of a gap-fix skill
+- **Uncommon**: Pattern-amplified skill (proactive, harder to earn)
+- **Rare**: Cross-skill connection (two skills inform each other)
+- **Legendary**: Skill that required a research swarm to generate
+
+**Agent class (compute from skill distribution):**
+- **Sentinel**: Majority of skills are gap-fix (defensive, catches problems)
+- **Architect**: Majority of skills are pattern-amplified (creative, sees structure)
+- **Scholar**: Has completed 2+ research swarms
+- **Novice**: Default when fewer than 3 skills exist
 
 **Rules for graph updates:**
 - Add a node for every new skill generated (gap-fix or pattern-amplified)
 - Add links showing parent-child relationships (which meta-skill generated it)
 - Add cross-links when skills inform each other
-- Update `meta.lastUpdated` and counts on every session-end
+- Update `meta.lastUpdated`, counts, totalXP, agentLevel, and agentClass on every session-end
 - Never remove nodes (skills are permanent). Mark inactive with `"status": "inactive"`
+- Recalculate agentLevel from totalXP using the threshold table above
 
 ### 6. Display Skill Tree (Terminal + HTML)
 
@@ -348,13 +392,15 @@ Taproot (meta-skill) ──┬── Session Logger
                        ├── Directive Extractor
                        └── North Star Keeper
 
-Skills: 6 | New this session: 1 | Gaps detected: 0
+⚡ Level 3 Journeyman | 280 XP | 250 XP to next level
+🎯 Class: Sentinel | Skills: 6 | New this session: 1
 📊 Interactive view: open ./memory/skill-graph.html in your browser
 ```
 
 Build this dynamically from the `skill-graph.json` data. Show connections
-between skills using box-drawing characters. Always include the stats
-line and the HTML file prompt.
+between skills using box-drawing characters. Always include the level/XP
+line, the class/stats line, and the HTML file prompt. Calculate the XP
+needed for the next level from the threshold table.
 
 **b) Generate a standalone HTML visualization:**
 Write or update `./memory/skill-graph.html`. This is a single,
