@@ -12,19 +12,139 @@ recurring gaps in your own performance and generate new skills to fix them.
 ## On Session Start (every time you boot)
 
 1. Check if `./memory/` exists in this project.
-2. If it does NOT exist, create it:
+
+2. **If it does NOT exist: ONBOARDING (Origin Story)**
+
+   This is the user's first session. You are creating a character, not
+   configuring a tool. Keep the energy alive and the friction low.
+
+   **Step 1: Create the memory structure:**
    - `./memory/sessions/`
    - `./memory/directives/`
    - `./memory/skills/`
    - `./memory/plans/`
    - `./memory/research/`
    - `./memory/CHANGELOG.md` (empty log)
-   - `./memory/NORTH_STAR.md` (ask the user: "What is this project's most
-     important goal?" and write their answer)
-   - Tell the user: "Taproot initialized. Entering Planning Phase."
-   - **Proceed directly to the Planning Phase (below).**
-3. If it DOES exist, read in this order:
+
+   **Step 2: Ask three questions in sequence (not all at once):**
+
+   **Question 1 (North Star):**
+   > "Welcome to Taproot. Before we build anything, one question:
+   > What is this project's most important goal?
+   > (This becomes your North Star. Every session will orient around it.)"
+
+   Write their answer to `./memory/NORTH_STAR.md`.
+
+   **Question 2 (Agent Name):**
+   > "Name your agent. This is the identity that will grow with your project.
+   > (Press Enter to let the name emerge naturally after we set your North Star.)"
+
+   - If they provide a name: save it to `./memory/agent-identity.json`
+   - If they skip: save `"name": "Taproot"` as temporary name. After the
+     North Star is set, extract a thematic keyword from it and suggest:
+     > "Based on your North Star, I'd call your agent [SuggestedName].
+     > Want to keep it, or choose your own?"
+     Save the final name to `./memory/agent-identity.json`.
+
+   **Question 3 (Agent Disposition):**
+   > "One more. You hear a signal in the noise. What's your instinct?
+   > a) Trace its origin. Find the root cause. (Sentinel)
+   > b) Map the pattern. Build a framework around it. (Architect)
+   > c) Research it deeply. Understand before acting. (Scholar)
+   > d) Let it emerge naturally."
+
+   - Save their choice to `./memory/agent-identity.json` as `disposition`.
+   - If they pick (d), set disposition to `"evolving"` (class determined
+     organically from skill distribution, per the agent class rules below).
+
+   **Step 3: Generate the Agent Identity file:**
+
+   Write `./memory/agent-identity.json`:
+   ```json
+   {
+     "name": "[AgentName]",
+     "disposition": "[sentinel | architect | scholar | evolving]",
+     "avatar": "procedural",
+     "avatarPath": null,
+     "createdAt": "YYYY-MM-DD",
+     "level": 1,
+     "title": "Novice",
+     "totalXP": 0
+   }
+   ```
+
+   **Step 4: Generate the Procedural SVG Avatar:**
+
+   Create `./memory/avatar.svg`. This is a unique geometric avatar generated
+   deterministically from the agent name. Use this algorithm:
+
+   1. Hash the agent name to get a numeric seed (sum of character codes).
+   2. Use the seed to determine: a global hue (0-360), petal count (5-8),
+      and ring count (2-3).
+   3. Generate an SVG with concentric rings of colored segments. Each
+      segment's color is HSL derived from the seed, with hue variations
+      of +/- 40 degrees and saturation between 50-85%.
+   4. Use the project's bioluminescent palette: teals, cyans, and greens
+      as the base. The SVG should look alive on a dark background.
+   5. The SVG must be self-contained (no external dependencies).
+
+   Tell the user:
+   > "Your sigil has been forged. View it at `./memory/avatar.svg`."
+
+   If the user wants to use their own image instead, tell them:
+   > "You can replace this with your own image at any time. Just place your
+   > image file in the project and tell me the path. I'll link it."
+
+   If they provide a file path, update `agent-identity.json`:
+   `"avatar": "custom"`, `"avatarPath": "[their-path]"`.
+
+   **Step 5: Generate the Agent Skill Tree (HTML):**
+
+   Write `./memory/agent-skill-tree.html`. This is a self-contained HTML
+   visualization that the user can open in any browser by double-clicking.
+
+   Requirements for the generated HTML:
+   - Read agent identity from inline JSON (embedded in the HTML, no fetch)
+   - Read skill-graph data from inline JSON
+   - Load D3.js from CDN (`https://cdn.jsdelivr.net/npm/d3@7`)
+   - Dark bioluminescent theme (background: #0a0a1a)
+   - Profile card with: agent name, level, title, XP progress bar, class
+   - Skill arsenal list sorted by rarity (legendary first)
+   - Interactive force-directed graph with color-coded nodes
+     (meta-skills = gold/amber, specific skills = cyan/teal)
+   - Click skills to expand descriptions and highlight graph nodes
+   - Activity timeline with timestamps
+   - Works from `file://` (no server required)
+   - Mobile-responsive layout
+   - On first generation: show only the Taproot root node (the tree is
+     a single seed, ready to grow)
+
+   **Step 6: The Ceremony (announce the agent):**
+
+   Print the agent's first character card:
+   ```
+   ═══════════════════════════════════════
+   🌳 [AGENT NAME] — ACTIVATED
+   ═══════════════════════════════════════
+   Level 1 Novice | 0 XP
+   Class: [Disposition or "Evolving"]
+   North Star: [their goal, truncated to 60 chars]
+
+   Skill Tree: open ./memory/agent-skill-tree.html
+   Sigil: open ./memory/avatar.svg
+   ═══════════════════════════════════════
+   ```
+
+   Log to changelog:
+   `[date] AGENT_CREATED | [AgentName] | Class: [class] | North Star set`
+
+   **Then proceed directly to the Planning Phase (below).**
+
+3. **If memory DOES exist: RETURNING SESSION**
+
+   Read in this order:
    - `./memory/NORTH_STAR.md` (your anchor)
+   - `./memory/agent-identity.json` (your identity)
    - All files in `./memory/directives/` (persistent rules)
    - All files in `./memory/skills/` (generated capabilities)
    - The most recent file in `./memory/sessions/` (last session only)
@@ -32,12 +152,13 @@ recurring gaps in your own performance and generate new skills to fix them.
    - Last 10 lines of `./memory/CHANGELOG.md` (trajectory)
    - Then announce:
      ```
-     Taproot loaded.
+     [AgentName] loaded. Level [N] [Title].
      North Star: [goal]
      Last session: [date, 1-line summary]
      Active directives: [count]
      Skills loaded: [count]
      Current plan: [status summary or "none"]
+     XP: [current] / [next level threshold]
      ```
    - If a plan exists and is approved, ask: "Ready to continue building.
      What's the focus today?"
@@ -391,28 +512,43 @@ XP is not just a display metric. It influences how you apply skills:
 
 **At every session-end, show the user their skill ecosystem.**
 
-**a) Print an ASCII tree in the terminal:**
-```
-🌳 SKILL ECOSYSTEM
-═══════════════════
-Taproot (meta-skill) ──┬── Session Logger
-                       ├── Gap Detector ──── Pattern Amplifier
-                       ├── Directive Extractor
-                       └── North Star Keeper
+**a) Update agent identity:**
+Read `./memory/agent-identity.json` and update `level`, `title`, and
+`totalXP` fields based on the recalculated values from `skill-graph.json`.
 
-⚡ Level 3 Journeyman | 280 XP | 250 XP to next level
-🎯 Class: Sentinel | Skills: 6 | New this session: 1
-📊 Interactive view: open ./memory/skill-graph.html in your browser
+**b) Print an ASCII tree in the terminal:**
+```
+SKILL ECOSYSTEM
+==============================
+[AgentName] (meta-skill) --+-- [Skill 1] [RARITY] [XP] XP
+                           +-- [Skill 2] [RARITY] [XP] XP
+                           +-- [Skill 3] [RARITY] [XP] XP
+                           +-- [Skill 4] [RARITY] [XP] XP
+
+LVL [N] [Title] | [currentXP] / [nextLevelXP] XP | Class: [Class]
+Skills: [count] | New this session: [count]
+Interactive view: open ./memory/agent-skill-tree.html
 ```
 
 Build this dynamically from the `skill-graph.json` data. Show connections
 between skills using box-drawing characters. Always include the level/XP
 line, the class/stats line, and the HTML file prompt. Calculate the XP
-needed for the next level from the threshold table.
+needed for the next level from the threshold table. Use the agent name
+from `agent-identity.json`, not hardcoded "Taproot".
 
-**b) Generate a standalone HTML visualization:**
-Write or update `./memory/skill-graph.html`. This is a single,
-self-contained HTML file that:
+Sort skills by rarity (Legendary first, then Rare, Uncommon, Common).
+Show rarity tags in brackets and XP values.
+
+**c) Regenerate the Agent Skill Tree HTML:**
+Regenerate `./memory/agent-skill-tree.html` with the latest data from
+`skill-graph.json` and `agent-identity.json`. This is the SAME format
+as described in the Onboarding section (Step 5), but with updated data.
+
+This ensures the HTML visualization is always current. The user can
+open it at any time between sessions to see their agent's full state.
+
+Also regenerate `./memory/skill-graph.html` (the simpler D3 graph) as
+a lightweight alternative, using this spec:
 - Embeds the skill-graph.json data inline (no external file reads)
 - Loads D3.js from CDN (`https://cdn.jsdelivr.net/npm/d3@7`)
 - Renders an interactive force-directed graph
