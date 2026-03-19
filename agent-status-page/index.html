@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agent Status Dashboard</title>
+<title>Agent Skill Tree</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
@@ -837,7 +837,7 @@
   <!-- Header -->
   <header class="header">
     <div class="header-tag"><span class="pulse-dot"></span> AGENT STATUS — LIVE</div>
-    <h1>Agent Status Dashboard</h1>
+    <h1>Agent Skill Tree</h1>
     <p>Autonomous skill evolution &middot; Persistent memory &middot; Self-improving agent</p>
   </header>
 
@@ -1033,7 +1033,7 @@ const SKILL_GRAPH = {
     "agentClass": "Architect"
   },
   "activity": [
-    { "date": "2026-03-18 21:36", "event": "SESSION_END", "detail": "Agent Status Dashboard build session, Level 4 Specialist reached" },
+    { "date": "2026-03-18 21:36", "event": "SESSION_END", "detail": "Agent Skill Tree build session, Level 4 Specialist reached" },
     { "date": "2026-03-14 14:22", "event": "TAPROOT_CREATED", "detail": "Memory Curator, pattern-amplified from 4 sessions of consistent memory management" },
     { "date": "2026-03-12 11:05", "event": "TAPROOT_CREATED", "detail": "Cascade Planner, cross-linked with Plan Anchor for drift detection" },
     { "date": "2026-03-10 19:45", "event": "TAPROOT_CREATED", "detail": "Style Guardian, gap-fix after inconsistent theming in sessions 5 & 6" },
@@ -1486,7 +1486,7 @@ function renderTradingCard() {
 
   document.getElementById("tradingCard").innerHTML = `
     <div class="tc-header">
-      <div class="tc-avatar">${SKILL_GRAPH.nodes[0].icon || '\u{1F333}'}</div>
+      <div class="tc-avatar"><img src="avatar.png" alt="Agent" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>
       <div class="tc-info">
         <h3>Taproot</h3>
         <div class="tc-class" style="color:${classColor[meta.agentClass] || classColor.Novice}">${meta.agentClass}</div>
@@ -1505,7 +1505,7 @@ function renderTradingCard() {
       <div class="tc-stat"><div class="tc-stat-val">${meta.totalSkills}</div><div class="tc-stat-lbl">Skills</div></div>
       <div class="tc-stat"><div class="tc-stat-val">${meta.totalSessions}</div><div class="tc-stat-lbl">Sessions</div></div>
     </div>
-    <div class="tc-footer"><img src="avatar.png" alt="" style="width:16px;height:16px;border-radius:50%;vertical-align:middle;margin-right:4px">TAPROOT \u00b7 <a href="https://github.com/dufour9953/Meta-Skill" target="_blank">github.com/dufour9953/Meta-Skill</a></div>
+    <div class="tc-footer"><img src="avatar.png" alt="" style="width:16px;height:16px;border-radius:50%;vertical-align:middle;margin-right:4px">TAPROOT &middot; <a href="https://github.com/dufour9953/Meta-Skill" target="_blank">github.com/dufour9953/Meta-Skill</a></div>
   `;
 }
 
