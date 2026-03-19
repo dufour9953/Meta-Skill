@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Status Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<style>
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+  :root {
+    --bg-primary: #0a0a1a;
+    --bg-secondary: #0d1025;
+    --bg-tertiary: #111438;
+    --bg-card: #0f1229;
+    --border-subtle: rgba(56, 189, 248, 0.08);
+    --border-glow: rgba(56, 189, 248, 0.2);
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --cyan-core: #22d3ee;
+    --cyan-bright: #67e8f9;
+    --cyan-dim: #0e7490;
+    --teal-core: #2dd4bf;
+    --teal-bright: #5eead4;
+    --amber-core: #f59e0b;
+    --amber-bright: #fbbf24;
+    --amber-dim: #92400e;
+    --purple-core: #a78bfa;
+    --purple-bright: #c4b5fd;
+    --green-core: #34d399;
+    --rose-core: #fb7185;
+    --rarity-common: #94a3b8;
+    --rarity-uncommon: #34d399;
+    --rarity-rare: #a78bfa;
+    --rarity-legendary: #f59e0b;
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Ambient Background ── */
+  .ambient-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .ambient-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.15;
+    animation: orbFloat 20s ease-in-out infinite;
+  }
+  .ambient-orb:nth-child(1) {
+    width: 600px; height: 600px;
+    background: var(--cyan-core);
+    top: -10%; left: -5%;
+    animation-duration: 25s;
+  }
+  .ambient-orb:nth-child(2) {
+    width: 500px; height: 500px;
+    background: var(--purple-core);
+    bottom: -15%; right: -10%;
+    animation-duration: 30s;
+    animation-delay: -5s;
+  }
+  .ambient-orb:nth-child(3) {
+    width: 400px; height: 400px;
+    background: var(--teal-core);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation-duration: 22s;
+    animation-delay: -10s;
+  }
+  @keyframes orbFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(30px, -40px) scale(1.05); }
+    50% { transform: translate(-20px, 20px) scale(0.95); }
+    75% { transform: translate(40px, 30px) scale(1.02); }
+  }
+
+  /* ── Grid Overlay ── */
+  .grid-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(56, 189, 248, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(56, 189, 248, 0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* ── Layout ── */
+  .dashboard {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 2rem 4rem;
+  }
+
+  /* ── Header ── */
+  .header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding-top: 1rem;
+  }
+  .header-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--cyan-core);
+    background: rgba(34, 211, 238, 0.06);
+    border: 1px solid rgba(34, 211, 238, 0.15);
+    border-radius: 100px;
+    padding: 0.4rem 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .header-tag .pulse-dot {
+    width: 6px; height: 6px;
+    background: var(--cyan-core);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+    box-shadow: 0 0 8px var(--cyan-core);
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+  .header h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, var(--cyan-bright), var(--teal-bright));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+  }
+  .header p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    font-weight: 400;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 1.75rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .card:hover {
+    border-color: var(--border-glow);
+    box-shadow: 0 0 30px rgba(34, 211, 238, 0.05);
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.3), transparent);
+  }
+  .card-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1.25rem;
+  }
+
+  /* ── Top Grid ── */
+  .top-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* ── Profile Card ── */
+  .profile-card {
+    display: flex;
+    flex-direction: column;
+  }
+  .profile-header {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .avatar-ring {
+    position: relative;
+    width: 80px; height: 80px;
+    flex-shrink: 0;
+  }
+  .avatar-ring svg {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    animation: avatarSpin 12s linear infinite;
+  }
+  @keyframes avatarSpin {
+    to { transform: rotate(360deg); }
+  }
+  .avatar-inner {
+    position: absolute;
+    inset: 6px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+  }
+  .profile-info h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+  }
+  .profile-info .agent-class {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .class-sentinel { color: var(--cyan-core); }
+  .class-architect { color: var(--purple-core); }
+  .class-scholar { color: var(--amber-core); }
+  .class-novice { color: var(--text-muted); }
+
+  /* ── Level + XP Bar ── */
+  .level-section {
+    margin-bottom: 1.5rem;
+  }
+  .level-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.65rem;
+  }
+  .level-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--cyan-bright);
+  }
+  .level-badge .lvl-num {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--cyan-core);
+    line-height: 1;
+  }
+  .level-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .xp-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+  }
+  .xp-bar-track {
+    width: 100%;
+    height: 10px;
+    background: var(--bg-primary);
+    border-radius: 100px;
+    overflow: hidden;
+    border: 1px solid var(--border-subtle);
+    position: relative;
+  }
+  .xp-bar-fill {
+    height: 100%;
+    border-radius: 100px;
+    background: linear-gradient(90deg, var(--cyan-dim), var(--cyan-core), var(--cyan-bright));
+    position: relative;
+    transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .xp-bar-fill::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 100px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: xpShimmer 2s ease-in-out infinite;
+  }
+  @keyframes xpShimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  /* ── Stats Row ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+  }
+  .stat-box {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 0.75rem;
+    text-align: center;
+    transition: border-color 0.3s ease;
+  }
+  .stat-box:hover {
+    border-color: var(--border-glow);
+  }
+  .stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--cyan-core);
+    line-height: 1.2;
+  }
+  .stat-label {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+  }
+
+  /* ── Skills List ── */
+  .skills-card {
+    display: flex;
+    flex-direction: column;
+  }
+  .skill-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+    overflow-y: auto;
+  }
+  .skill-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .skill-item:hover {
+    border-color: var(--border-glow);
+    transform: translateX(4px);
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.06);
+  }
+  .skill-item::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    border-radius: 0 2px 2px 0;
+  }
+  .skill-item[data-rarity="legendary"]::before { background: var(--rarity-legendary); box-shadow: 0 0 8px var(--rarity-legendary); }
+  .skill-item[data-rarity="rare"]::before { background: var(--rarity-rare); box-shadow: 0 0 8px var(--rarity-rare); }
+  .skill-item[data-rarity="uncommon"]::before { background: var(--rarity-uncommon); box-shadow: 0 0 8px var(--rarity-uncommon); }
+  .skill-item[data-rarity="common"]::before { background: var(--rarity-common); }
+
+  .skill-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .skill-icon.legendary { background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.25); }
+  .skill-icon.rare { background: rgba(167, 139, 250, 0.12); border: 1px solid rgba(167, 139, 250, 0.25); }
+  .skill-icon.uncommon { background: rgba(52, 211, 153, 0.12); border: 1px solid rgba(52, 211, 153, 0.25); }
+  .skill-icon.common { background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.15); }
+
+  .skill-details {
+    flex: 1;
+    min-width: 0;
+  }
+  .skill-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.15rem;
+  }
+  .skill-desc {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .skill-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+    flex-shrink: 0;
+  }
+  .rarity-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.15rem 0.5rem;
+    border-radius: 100px;
+  }
+  .rarity-tag.legendary { color: var(--rarity-legendary); background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); }
+  .rarity-tag.rare { color: var(--rarity-rare); background: rgba(167, 139, 250, 0.1); border: 1px solid rgba(167, 139, 250, 0.2); }
+  .rarity-tag.uncommon { color: var(--rarity-uncommon); background: rgba(52, 211, 153, 0.1); border: 1px solid rgba(52, 211, 153, 0.2); }
+  .rarity-tag.common { color: var(--rarity-common); background: rgba(148, 163, 184, 0.08); border: 1px solid rgba(148, 163, 184, 0.15); }
+
+  .skill-xp {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+  }
+
+  /* ── Graph Card ── */
+  .graph-card {
+    margin-bottom: 1.5rem;
+  }
+  .graph-container {
+    width: 100%;
+    height: 500px;
+    background: var(--bg-primary);
+    border-radius: 12px;
+    border: 1px solid var(--border-subtle);
+    overflow: hidden;
+    position: relative;
+  }
+  .graph-container svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ── Graph Tooltip ── */
+  .graph-tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: var(--bg-card);
+    border: 1px solid var(--border-glow);
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    max-width: 240px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 10;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .graph-tooltip.visible { opacity: 1; }
+  .graph-tooltip h4 {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.3rem;
+  }
+  .graph-tooltip p {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin-bottom: 0.25rem;
+  }
+  .graph-tooltip .tt-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-muted);
+  }
+
+  /* ── Timeline Card ── */
+  .timeline-card {
+    margin-bottom: 0;
+  }
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+    padding-left: 1.5rem;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 8px;
+    bottom: 8px;
+    width: 1px;
+    background: linear-gradient(180deg, var(--cyan-core), var(--border-subtle));
+  }
+  .timeline-item {
+    position: relative;
+    padding: 0.6rem 0 0.6rem 1rem;
+  }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -1.5rem;
+    top: 50%;
+    transform: translate(0, -50%);
+    width: 11px; height: 11px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 2px solid var(--cyan-dim);
+    z-index: 1;
+  }
+  .timeline-item:first-child::before {
+    border-color: var(--cyan-core);
+    box-shadow: 0 0 8px var(--cyan-core);
+    background: var(--cyan-core);
+  }
+  .timeline-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    margin-bottom: 0.15rem;
+  }
+  .timeline-text {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+  }
+  .timeline-text strong {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .top-grid { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .header h1 { font-size: 1.8rem; }
+    .dashboard { padding: 1.25rem; }
+  }
+
+  /* ── Scroll ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(34, 211, 238, 0.2);
+    border-radius: 100px;
+  }
+
+  /* ── Glow effect for legendary items ── */
+  @keyframes legendaryPulse {
+    0%, 100% { box-shadow: 0 0 8px rgba(245, 158, 11, 0.15); }
+    50% { box-shadow: 0 0 16px rgba(245, 158, 11, 0.3); }
+  }
+  .skill-item[data-rarity="legendary"] {
+    animation: legendaryPulse 3s ease-in-out infinite;
+  }
+</style>
+</head>
+<body>
+
+<div class="ambient-bg">
+  <div class="ambient-orb"></div>
+  <div class="ambient-orb"></div>
+  <div class="ambient-orb"></div>
+</div>
+<div class="grid-overlay"></div>
+
+<div class="dashboard">
+  <!-- Header -->
+  <header class="header">
+    <div class="header-tag"><span class="pulse-dot"></span> AGENT STATUS — LIVE</div>
+    <h1>Agent Status Dashboard</h1>
+    <p>Autonomous skill evolution &middot; Persistent memory &middot; Self-improving agent</p>
+  </header>
+
+  <!-- Top Grid: Profile + Skills -->
+  <div class="top-grid">
+    <!-- Profile Card -->
+    <div class="card profile-card" id="profileCard">
+      <div class="card-label">Agent Profile</div>
+      <div class="profile-header">
+        <div class="avatar-ring">
+          <svg viewBox="0 0 80 80">
+            <defs>
+              <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#22d3ee"/>
+                <stop offset="50%" stop-color="#a78bfa"/>
+                <stop offset="100%" stop-color="#22d3ee"/>
+              </linearGradient>
+            </defs>
+            <circle cx="40" cy="40" r="37" fill="none" stroke="url(#ringGrad)"
+              stroke-width="2.5" stroke-dasharray="80 152" stroke-linecap="round"/>
+          </svg>
+          <div class="avatar-inner" id="avatarEmoji">🌳</div>
+        </div>
+        <div class="profile-info">
+          <h2 id="agentName">Taproot</h2>
+          <div class="agent-class" id="agentClass"></div>
+        </div>
+      </div>
+      <div class="level-section">
+        <div class="level-row">
+          <div class="level-badge">
+            LVL <span class="lvl-num" id="levelNum"></span>
+            <span class="level-title" id="levelTitle"></span>
+          </div>
+          <div class="xp-label" id="xpLabel"></div>
+        </div>
+        <div class="xp-bar-track">
+          <div class="xp-bar-fill" id="xpBarFill" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="stats-row" id="statsRow"></div>
+    </div>
+
+    <!-- Skills Card -->
+    <div class="card skills-card">
+      <div class="card-label">Skill Arsenal</div>
+      <div class="skill-list" id="skillList"></div>
+    </div>
+  </div>
+
+  <!-- Force Graph -->
+  <div class="card graph-card">
+    <div class="card-label">Skill Ecosystem</div>
+    <div class="graph-container" id="graphContainer">
+      <div class="graph-tooltip" id="graphTooltip">
+        <h4 id="ttName"></h4>
+        <p id="ttDesc"></p>
+        <div class="tt-meta" id="ttMeta"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activity Timeline -->
+  <div class="card timeline-card">
+    <div class="card-label">Activity Log</div>
+    <div class="timeline" id="timeline"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// INLINE SKILL GRAPH DATA
+// Replace this object with your actual skill-graph.json data
+// ═══════════════════════════════════════════════════════════
+const SKILL_GRAPH = {
+  "nodes": [
+    {
+      "id": "taproot",
+      "label": "Taproot",
+      "type": "meta-skill",
+      "description": "Session-intelligent coding agent with planning brain, persistent memory, and self-improving skill generation.",
+      "origin": "designed",
+      "status": "active",
+      "createdAt": "2026-03-01",
+      "xp": 0,
+      "rarity": "legendary",
+      "icon": "🌳"
+    },
+    {
+      "id": "context-weaver",
+      "label": "Context Weaver",
+      "type": "specific-skill",
+      "description": "Synthesizes scattered context from memory, git history, and conversation into a coherent mental model before acting. Prevents hallucination from partial context.",
+      "origin": "pattern-amplified",
+      "status": "active",
+      "createdAt": "2026-03-05",
+      "parent": "taproot",
+      "xp": 150,
+      "rarity": "uncommon",
+      "icon": "🕸️"
+    },
+    {
+      "id": "plan-anchor",
+      "label": "Plan Anchor",
+      "type": "specific-skill",
+      "description": "Ensures every build session stays aligned with the approved plan. Detects scope drift and flags deviations before they compound.",
+      "origin": "gap-detected",
+      "status": "active",
+      "createdAt": "2026-03-06",
+      "parent": "taproot",
+      "xp": 75,
+      "rarity": "common",
+      "icon": "⚓"
+    },
+    {
+      "id": "research-sentinel",
+      "label": "Research Sentinel",
+      "type": "specific-skill",
+      "description": "Coordinates research swarms, validates findings against project constraints, and integrates results into the active plan. Required a full research swarm to develop.",
+      "origin": "gap-detected",
+      "status": "active",
+      "createdAt": "2026-03-08",
+      "parent": "taproot",
+      "xp": 200,
+      "rarity": "legendary",
+      "icon": "🔬"
+    },
+    {
+      "id": "style-guardian",
+      "label": "Style Guardian",
+      "type": "specific-skill",
+      "description": "Enforces bioluminescent design system: dark backgrounds, curated color palettes, micro-animations, and screenshot-worthy screens. Born from two sessions of inconsistent styling.",
+      "origin": "gap-detected",
+      "status": "active",
+      "createdAt": "2026-03-10",
+      "parent": "taproot",
+      "xp": 50,
+      "rarity": "common",
+      "icon": "🎨"
+    },
+    {
+      "id": "cascade-planner",
+      "label": "Cascade Planner",
+      "type": "specific-skill",
+      "description": "Decomposes large tasks into dependency-aware execution chains. Identifies parallelizable work and critical-path bottlenecks. Cross-links with Plan Anchor for drift detection.",
+      "origin": "pattern-amplified",
+      "status": "active",
+      "createdAt": "2026-03-12",
+      "parent": "taproot",
+      "xp": 120,
+      "rarity": "rare",
+      "icon": "🏗️"
+    },
+    {
+      "id": "memory-curator",
+      "label": "Memory Curator",
+      "type": "specific-skill",
+      "description": "Manages session memory lifecycle: writes structured session files, extracts directives, prunes stale context, and maintains changelog coherence across sessions.",
+      "origin": "pattern-amplified",
+      "status": "active",
+      "createdAt": "2026-03-14",
+      "parent": "taproot",
+      "xp": 100,
+      "rarity": "uncommon",
+      "icon": "📚"
+    }
+  ],
+  "links": [
+    { "source": "taproot", "target": "context-weaver", "type": "generates", "label": "pattern extraction" },
+    { "source": "taproot", "target": "plan-anchor", "type": "generates", "label": "gap detection" },
+    { "source": "taproot", "target": "research-sentinel", "type": "generates", "label": "gap detection" },
+    { "source": "taproot", "target": "style-guardian", "type": "generates", "label": "gap detection" },
+    { "source": "taproot", "target": "cascade-planner", "type": "generates", "label": "pattern extraction" },
+    { "source": "taproot", "target": "memory-curator", "type": "generates", "label": "pattern extraction" },
+    { "source": "cascade-planner", "target": "plan-anchor", "type": "informs", "label": "drift detection" },
+    { "source": "context-weaver", "target": "memory-curator", "type": "informs", "label": "context synthesis" },
+    { "source": "research-sentinel", "target": "cascade-planner", "type": "informs", "label": "research → planning" }
+  ],
+  "meta": {
+    "lastUpdated": "2026-03-18 09:00",
+    "totalSessions": 12,
+    "totalSkills": 7,
+    "totalXP": 815,
+    "agentLevel": 4,
+    "agentClass": "Architect"
+  },
+  "activity": [
+    { "date": "2026-03-18", "event": "SESSION_END", "detail": "Agent Status Dashboard build session — Level 4 Specialist reached" },
+    { "date": "2026-03-14", "event": "TAPROOT_CREATED", "detail": "Memory Curator — pattern-amplified from 4 sessions of consistent memory management" },
+    { "date": "2026-03-12", "event": "TAPROOT_CREATED", "detail": "Cascade Planner — cross-linked with Plan Anchor for drift detection" },
+    { "date": "2026-03-10", "event": "TAPROOT_CREATED", "detail": "Style Guardian — gap-fix after inconsistent theming in sessions 5 & 6" },
+    { "date": "2026-03-08", "event": "RESEARCH_SWARM", "detail": "Research Sentinel created after swarm on D3 force-graph best practices" },
+    { "date": "2026-03-06", "event": "TAPROOT_CREATED", "detail": "Plan Anchor — gap-fix after scope drift in session 3" },
+    { "date": "2026-03-05", "event": "TAPROOT_CREATED", "detail": "Context Weaver — first pattern-amplified skill extracted" },
+    { "date": "2026-03-01", "event": "INIT", "detail": "Taproot initialized — North Star set, Planning Phase entered" }
+  ]
+};
+
+// ═══════════════════════════════════════════
+// LEVEL THRESHOLDS
+// ═══════════════════════════════════════════
+const LEVELS = [
+  { level: 1, xp: 0, title: "Novice" },
+  { level: 2, xp: 100, title: "Apprentice" },
+  { level: 3, xp: 250, title: "Journeyman" },
+  { level: 4, xp: 500, title: "Specialist" },
+  { level: 5, xp: 1000, title: "Expert" },
+  { level: 6, xp: 2000, title: "Master" },
+  { level: 7, xp: 3500, title: "Grandmaster" },
+  { level: 8, xp: 5000, title: "Sage" },
+  { level: 9, xp: 7500, title: "Oracle" },
+  { level: 10, xp: 10000, title: "Transcendent" },
+];
+
+const RARITY_ORDER = ["legendary", "rare", "uncommon", "common"];
+
+const RARITY_COLORS = {
+  legendary: "#f59e0b",
+  rare: "#a78bfa",
+  uncommon: "#34d399",
+  common: "#94a3b8"
+};
+
+const CLASS_STYLE = {
+  Sentinel: "class-sentinel",
+  Architect: "class-architect",
+  Scholar: "class-scholar",
+  Novice: "class-novice"
+};
+
+// ═══════════════════════════════════════════
+// RENDER PROFILE
+// ═══════════════════════════════════════════
+function renderProfile() {
+  const meta = SKILL_GRAPH.meta;
+  const lvl = LEVELS.find(l => l.level === meta.agentLevel) || LEVELS[0];
+  const nextLvl = LEVELS.find(l => l.level === meta.agentLevel + 1);
+
+  document.getElementById("levelNum").textContent = meta.agentLevel;
+  document.getElementById("levelTitle").textContent = lvl.title;
+
+  const classEl = document.getElementById("agentClass");
+  classEl.textContent = meta.agentClass;
+  classEl.className = "agent-class " + (CLASS_STYLE[meta.agentClass] || "class-novice");
+
+  if (nextLvl) {
+    const progressXP = meta.totalXP - lvl.xp;
+    const rangeXP = nextLvl.xp - lvl.xp;
+    const pct = Math.min(100, Math.round((progressXP / rangeXP) * 100));
+    document.getElementById("xpLabel").textContent = `${meta.totalXP} / ${nextLvl.xp} XP`;
+    requestAnimationFrame(() => {
+      document.getElementById("xpBarFill").style.width = pct + "%";
+    });
+  } else {
+    document.getElementById("xpLabel").textContent = `${meta.totalXP} XP — MAX LEVEL`;
+    requestAnimationFrame(() => {
+      document.getElementById("xpBarFill").style.width = "100%";
+    });
+  }
+
+  const skillNodes = SKILL_GRAPH.nodes.filter(n => n.type === "specific-skill");
+  const gapFix = skillNodes.filter(n => n.origin === "gap-detected").length;
+  const patternAmp = skillNodes.filter(n => n.origin === "pattern-amplified").length;
+
+  const stats = [
+    { value: meta.totalXP, label: "Total XP" },
+    { value: meta.totalSkills, label: "Skills" },
+    { value: meta.totalSessions, label: "Sessions" },
+    { value: gapFix + " / " + patternAmp, label: "Gap / Pattern" }
+  ];
+
+  const statsRow = document.getElementById("statsRow");
+  statsRow.innerHTML = stats.map(s => `
+    <div class="stat-box">
+      <div class="stat-value">${s.value}</div>
+      <div class="stat-label">${s.label}</div>
+    </div>
+  `).join("");
+}
+
+// ═══════════════════════════════════════════
+// RENDER SKILLS LIST
+// ═══════════════════════════════════════════
+function renderSkills() {
+  const nodes = SKILL_GRAPH.nodes
+    .filter(n => n.status === "active")
+    .sort((a, b) => {
+      const ai = RARITY_ORDER.indexOf(a.rarity);
+      const bi = RARITY_ORDER.indexOf(b.rarity);
+      if (ai !== bi) return ai - bi;
+      return b.xp - a.xp;
+    });
+
+  const list = document.getElementById("skillList");
+  list.innerHTML = nodes.map(n => `
+    <div class="skill-item" data-rarity="${n.rarity}" data-id="${n.id}">
+      <div class="skill-icon ${n.rarity}">${n.icon || "◆"}</div>
+      <div class="skill-details">
+        <div class="skill-name">${n.label}</div>
+        <div class="skill-desc">${n.description}</div>
+      </div>
+      <div class="skill-meta">
+        <span class="rarity-tag ${n.rarity}">${n.rarity}</span>
+        <span class="skill-xp">${n.xp} XP</span>
+      </div>
+    </div>
+  `).join("");
+
+  // Click to highlight in graph
+  list.querySelectorAll(".skill-item").forEach(el => {
+    el.addEventListener("click", () => {
+      const id = el.dataset.id;
+      highlightNode(id);
+    });
+  });
+}
+
+// ═══════════════════════════════════════════
+// RENDER TIMELINE
+// ═══════════════════════════════════════════
+function renderTimeline() {
+  const timeline = document.getElementById("timeline");
+  const activity = SKILL_GRAPH.activity || [];
+
+  timeline.innerHTML = activity.map(a => {
+    const eventColors = {
+      SESSION_END: "var(--cyan-core)",
+      TAPROOT_CREATED: "var(--teal-core)",
+      RESEARCH_SWARM: "var(--amber-core)",
+      INIT: "var(--purple-core)"
+    };
+    const color = eventColors[a.event] || "var(--text-muted)";
+    return `
+      <div class="timeline-item">
+        <div class="timeline-date">${a.date} · ${a.event.replace(/_/g, " ")}</div>
+        <div class="timeline-text">${a.detail}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+// ═══════════════════════════════════════════
+// RENDER FORCE GRAPH
+// ═══════════════════════════════════════════
+let simulation, nodeElements, linkElements, labelElements;
+let highlightedNode = null;
+
+function renderGraph() {
+  const container = document.getElementById("graphContainer");
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+
+  const svg = d3.select(container).append("svg")
+    .attr("viewBox", `0 0 ${width} ${height}`)
+    .attr("preserveAspectRatio", "xMidYMid meet");
+
+  // Defs for glow filters
+  const defs = svg.append("defs");
+
+  // Glow filter per rarity
+  Object.entries(RARITY_COLORS).forEach(([rarity, color]) => {
+    const filter = defs.append("filter")
+      .attr("id", `glow-${rarity}`)
+      .attr("x", "-50%").attr("y", "-50%")
+      .attr("width", "200%").attr("height", "200%");
+    filter.append("feGaussianBlur")
+      .attr("stdDeviation", rarity === "legendary" ? 6 : 4)
+      .attr("result", "blur");
+    filter.append("feComposite")
+      .attr("in", "SourceGraphic").attr("in2", "blur");
+  });
+
+  // Radial gradient for center node
+  const radGrad = defs.append("radialGradient")
+    .attr("id", "centerGlow");
+  radGrad.append("stop").attr("offset", "0%").attr("stop-color", "#fbbf24").attr("stop-opacity", 0.3);
+  radGrad.append("stop").attr("offset", "100%").attr("stop-color", "#fbbf24").attr("stop-opacity", 0);
+
+  // Prep data
+  const nodes = SKILL_GRAPH.nodes.map(d => ({ ...d }));
+  const links = SKILL_GRAPH.links.map(d => ({
+    ...d,
+    source: typeof d.source === "string" ? d.source : d.source.id,
+    target: typeof d.target === "string" ? d.target : d.target.id
+  }));
+
+  // Force simulation
+  simulation = d3.forceSimulation(nodes)
+    .force("link", d3.forceLink(links).id(d => d.id).distance(d => {
+      return d.type === "informs" ? 160 : 120;
+    }).strength(0.6))
+    .force("charge", d3.forceManyBody().strength(-400))
+    .force("center", d3.forceCenter(width / 2, height / 2))
+    .force("collision", d3.forceCollide().radius(40))
+    .force("x", d3.forceX(width / 2).strength(0.05))
+    .force("y", d3.forceY(height / 2).strength(0.05));
+
+  // Links
+  linkElements = svg.append("g")
+    .selectAll("line")
+    .data(links)
+    .join("line")
+    .attr("stroke", d => d.type === "informs" ? "rgba(167, 139, 250, 0.2)" : "rgba(34, 211, 238, 0.15)")
+    .attr("stroke-width", d => d.type === "informs" ? 1 : 1.5)
+    .attr("stroke-dasharray", d => d.type === "informs" ? "4 4" : "none");
+
+  // Link labels
+  const linkLabels = svg.append("g")
+    .selectAll("text")
+    .data(links)
+    .join("text")
+    .attr("text-anchor", "middle")
+    .attr("font-size", "9px")
+    .attr("font-family", "'JetBrains Mono', monospace")
+    .attr("fill", "rgba(148, 163, 184, 0.3)")
+    .text(d => d.label);
+
+  // Node groups
+  const nodeGroups = svg.append("g")
+    .selectAll("g")
+    .data(nodes)
+    .join("g")
+    .attr("cursor", "pointer")
+    .call(d3.drag()
+      .on("start", dragStart)
+      .on("drag", dragging)
+      .on("end", dragEnd));
+
+  // Outer glow circle
+  nodeGroups.append("circle")
+    .attr("r", d => d.type === "meta-skill" ? 30 : 20)
+    .attr("fill", d => {
+      const c = RARITY_COLORS[d.rarity];
+      return c.replace(")", ", 0.08)").replace("rgb", "rgba").replace("#", "");
+    })
+    .attr("fill", d => "transparent")
+    .attr("stroke", d => RARITY_COLORS[d.rarity])
+    .attr("stroke-width", 0)
+    .attr("filter", d => `url(#glow-${d.rarity})`)
+    .attr("opacity", 0.6);
+
+  // Main circle
+  nodeGroups.append("circle")
+    .attr("class", "node-main")
+    .attr("r", d => d.type === "meta-skill" ? 24 : 16)
+    .attr("fill", d => {
+      const c = RARITY_COLORS[d.rarity];
+      return `color-mix(in srgb, ${c} 15%, var(--bg-secondary))`;
+    })
+    .attr("stroke", d => RARITY_COLORS[d.rarity])
+    .attr("stroke-width", d => d.type === "meta-skill" ? 2.5 : 1.5)
+    .attr("stroke-opacity", 0.7);
+
+  // Icon text
+  nodeGroups.append("text")
+    .attr("text-anchor", "middle")
+    .attr("dominant-baseline", "central")
+    .attr("font-size", d => d.type === "meta-skill" ? "18px" : "12px")
+    .text(d => d.icon || "◆");
+
+  // Labels
+  labelElements = nodeGroups.append("text")
+    .attr("text-anchor", "middle")
+    .attr("dy", d => d.type === "meta-skill" ? 38 : 28)
+    .attr("font-size", "10px")
+    .attr("font-family", "'Inter', sans-serif")
+    .attr("font-weight", "500")
+    .attr("fill", d => RARITY_COLORS[d.rarity])
+    .attr("fill-opacity", 0.8)
+    .text(d => d.label);
+
+  nodeElements = nodeGroups;
+
+  // Tooltip
+  const tooltip = document.getElementById("graphTooltip");
+  const ttName = document.getElementById("ttName");
+  const ttDesc = document.getElementById("ttDesc");
+  const ttMeta = document.getElementById("ttMeta");
+
+  nodeGroups
+    .on("mouseenter", (event, d) => {
+      ttName.textContent = d.label;
+      ttDesc.textContent = d.description;
+      ttMeta.textContent = `${d.rarity.toUpperCase()} · ${d.xp} XP · ${d.origin.replace("-", " ")}`;
+      tooltip.classList.add("visible");
+
+      // Highlight connected
+      const connectedIds = new Set([d.id]);
+      links.forEach(l => {
+        const sid = typeof l.source === "string" ? l.source : l.source.id;
+        const tid = typeof l.target === "string" ? l.target : l.target.id;
+        if (sid === d.id) connectedIds.add(tid);
+        if (tid === d.id) connectedIds.add(sid);
+      });
+
+      nodeGroups.attr("opacity", n => connectedIds.has(n.id) ? 1 : 0.15);
+      linkElements.attr("opacity", l => {
+        const sid = typeof l.source === "string" ? l.source : l.source.id;
+        const tid = typeof l.target === "string" ? l.target : l.target.id;
+        return (sid === d.id || tid === d.id) ? 1 : 0.05;
+      });
+      linkLabels.attr("opacity", l => {
+        const sid = typeof l.source === "string" ? l.source : l.source.id;
+        const tid = typeof l.target === "string" ? l.target : l.target.id;
+        return (sid === d.id || tid === d.id) ? 1 : 0;
+      });
+    })
+    .on("mousemove", (event) => {
+      const rect = container.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      tooltip.style.left = (x + 16) + "px";
+      tooltip.style.top = (y - 10) + "px";
+    })
+    .on("mouseleave", () => {
+      tooltip.classList.remove("visible");
+      nodeGroups.attr("opacity", 1);
+      linkElements.attr("opacity", 1);
+      linkLabels.attr("opacity", 1);
+    });
+
+  // Tick
+  simulation.on("tick", () => {
+    linkElements
+      .attr("x1", d => d.source.x)
+      .attr("y1", d => d.source.y)
+      .attr("x2", d => d.target.x)
+      .attr("y2", d => d.target.y);
+
+    linkLabels
+      .attr("x", d => (d.source.x + d.target.x) / 2)
+      .attr("y", d => (d.source.y + d.target.y) / 2);
+
+    nodeGroups.attr("transform", d => {
+      d.x = Math.max(30, Math.min(width - 30, d.x));
+      d.y = Math.max(30, Math.min(height - 30, d.y));
+      return `translate(${d.x},${d.y})`;
+    });
+  });
+
+  function dragStart(event, d) {
+    if (!event.active) simulation.alphaTarget(0.3).restart();
+    d.fx = d.x; d.fy = d.y;
+  }
+  function dragging(event, d) {
+    d.fx = event.x; d.fy = event.y;
+  }
+  function dragEnd(event, d) {
+    if (!event.active) simulation.alphaTarget(0);
+    d.fx = null; d.fy = null;
+  }
+}
+
+function highlightNode(id) {
+  if (!nodeElements) return;
+  const links = SKILL_GRAPH.links;
+  const connectedIds = new Set([id]);
+  links.forEach(l => {
+    const sid = typeof l.source === "string" ? l.source : l.source.id;
+    const tid = typeof l.target === "string" ? l.target : l.target.id;
+    if (sid === id) connectedIds.add(tid);
+    if (tid === id) connectedIds.add(sid);
+  });
+  nodeElements.attr("opacity", n => connectedIds.has(n.id) ? 1 : 0.15);
+  setTimeout(() => nodeElements.attr("opacity", 1), 2000);
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+document.addEventListener("DOMContentLoaded", () => {
+  renderProfile();
+  renderSkills();
+  renderTimeline();
+  renderGraph();
+});
+</script>
+</body>
+</html>

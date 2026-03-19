@@ -18,15 +18,29 @@ Claude Code terminal. This add-on is for users who want to:
 ```
 IDE Agent (Orchestrator)
     |
-    |--- launches ---> Claude Code Terminal 1 (Taproot builds)
-    |--- launches ---> Claude Code Terminal 2 (Research swarm)
+    |--- launches with -p ----> Claude Code (single-pass build)
     |
-    |--- monitors ---> memory/ filesystem (shared between all)
+    |--- monitors -----------> memory/ filesystem (ground truth)
+    |--- monitors -----------> project files (for build artifacts)
 ```
 
-The orchestrator uses terminal commands to send prompts to Claude Code and
-reads the output. The filesystem (`memory/`) is the shared communication
-bus between all agents.
+**Critical: Known Antigravity Terminal Bug.**
+`command_status` may permanently return "RUNNING" or "No output" for completed
+background commands. This is a confirmed platform bug (Google AI Developers
+Forum, March 2026). DO NOT rely on terminal output piping.
+
+**Validated Patterns (tested 2026-03-18):**
+
+1. **`-p` flag with pre-answered prompts (RELIABLE).** Pass the full prompt
+   including all clarifications in one shot. Claude Code runs silently and
+   produces file artifacts. Monitor the filesystem for results.
+
+2. **Filesystem monitoring is ground truth.** Use `find` or `ls` to check
+   for new files in `memory/` and the project directory. Never wait for
+   `command_status` output from TUI programs like Claude Code.
+
+3. **For multi-turn (Taproot planning phase), pre-answer all questions**
+   in the `-p` prompt so the agent can proceed without interaction.
 
 ## Setup
 
@@ -38,20 +52,30 @@ bus between all agents.
 
 ### Step 1: Launch Claude Code
 
+**Preferred: Direct prompt mode (`-p` flag).** More reliable, avoids TUI
+rendering issues with the orchestrator:
+
+```bash
+cd /path/to/your/project && claude --dangerously-skip-permissions -p "Initialize. Read your CLAUDE.md and follow its instructions. [Your North Star prompt here]"
+```
+
+**Fallback: Interactive REPL mode.** Use when you need multi-turn
+conversation:
+
 ```bash
 cd /path/to/your/project && claude --dangerously-skip-permissions
 ```
 
-### Step 2: Send the Initialization Prompt
-
+Then send the initialization prompt:
 ```
 Initialize. Read your CLAUDE.md and follow its instructions.
 ```
 
-Taproot will:
-- Create the `memory/` directory (first run) or load existing memory
-- Ask for the North Star (first run) or announce loaded context
-- Enter Planning Phase or resume the current plan
+**Tips:**
+- Use short wait times (5-10s) when checking `command_status`.
+- With `-p` mode, monitor the **filesystem** (`memory/`) instead of
+  terminal output. The `-p` flag runs silently until completion.
+
 
 ### Step 3: Monitor via Filesystem
 

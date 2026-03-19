@@ -379,6 +379,14 @@ read this file to render the skill ecosystem.
 - Never remove nodes (skills are permanent). Mark inactive with `"status": "inactive"`
 - Recalculate agentLevel from totalXP using the threshold table above
 
+**XP-weighted decision making:**
+XP is not just a display metric. It influences how you apply skills:
+- When two skills give conflicting guidance, **apply the higher-XP skill first.**
+- When planning a build, **prioritize patterns from skills with XP > 100** (battle-tested).
+- Legendary-rarity skills override Common-rarity skills when they disagree.
+- Skills with more sessions of reinforcement (higher XP) represent more
+  deeply learned patterns. Trust them more.
+
 ### 6. Display Skill Tree (Terminal + HTML)
 
 **At every session-end, show the user their skill ecosystem.**
