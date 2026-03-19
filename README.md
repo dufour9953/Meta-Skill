@@ -117,16 +117,16 @@ Your agent's class evolves based on what skills it generates:
 
 | Level | Title | XP Required |
 |---|---|---|
-| 1 | Novice | 0 |
-| 2 | Apprentice | 100 |
-| 3 | Journeyman | 250 |
-| 4 | Specialist | 500 |
-| 5 | Expert | 1,000 |
-| 6 | Master | 2,000 |
-| 7 | Grandmaster | 3,500 |
-| 8 | Sage | 5,000 |
-| 9 | Oracle | 7,500 |
-| 10 | Transcendent | 10,000 |
+| 1 | Seed | 0 |
+| 2 | Spark | 100 |
+| 3 | Sprout | 250 |
+| 4 | Heartwood | 500 |
+| 5 | Canopy | 1,000 |
+| 6 | Taproot | 2,000 |
+| 7 | Old Growth | 3,500 |
+| 8 | Grove | 5,000 |
+| 9 | Sovereign | 7,500 |
+| 10 | Mycelium | 10,000 |
 
 ## Agent Skill Tree (Visualization)
 

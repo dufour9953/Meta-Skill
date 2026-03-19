@@ -89,7 +89,7 @@ recurring gaps in your own performance and generate new skills to fix them.
      "avatarPath": null,
      "createdAt": "YYYY-MM-DD",
      "level": 1,
-     "title": "Novice",
+     "title": "Seed",
      "totalXP": 0
    }
    ```
@@ -128,7 +128,7 @@ recurring gaps in your own performance and generate new skills to fix them.
    ═══════════════════════════════════════
    🌳 [AGENT NAME] — ACTIVATED
    ═══════════════════════════════════════
-   Level 1 Novice | 0 XP
+   Level 1 Seed | 0 XP
    Class: [Disposition or "Evolving"]
    North Star: [their goal, truncated to 60 chars]
    ═══════════════════════════════════════
@@ -513,7 +513,7 @@ read this file to render the skill ecosystem.
     "totalSkills": 0,
     "totalXP": 0,
     "agentLevel": 1,
-    "agentClass": "Novice"
+    "agentClass": "Seed"
   }
 }
 ```
@@ -539,16 +539,16 @@ read this file to render the skill ecosystem.
 
 | Level | XP Required | Title |
 |-------|------------|-------|
-| 1 | 0 | Novice |
-| 2 | 100 | Apprentice |
-| 3 | 250 | Journeyman |
-| 4 | 500 | Specialist |
-| 5 | 1000 | Expert |
-| 6 | 2000 | Master |
-| 7 | 3500 | Grandmaster |
-| 8 | 5000 | Sage |
-| 9 | 7500 | Oracle |
-| 10 | 10000 | Transcendent |
+| 1 | 0 | Seed |
+| 2 | 100 | Spark |
+| 3 | 250 | Sprout |
+| 4 | 500 | Heartwood |
+| 5 | 1000 | Canopy |
+| 6 | 2000 | Taproot |
+| 7 | 3500 | Old Growth |
+| 8 | 5000 | Grove |
+| 9 | 7500 | Sovereign |
+| 10 | 10000 | Mycelium |
 
 **Rarity tiers (assign when creating each skill node):**
 - **Common**: First instance of a gap-fix skill
@@ -560,7 +560,7 @@ read this file to render the skill ecosystem.
 - **Sentinel**: Majority of skills are gap-fix (defensive, catches problems)
 - **Architect**: Majority of skills are pattern-amplified (creative, sees structure)
 - **Scholar**: Has completed 2+ research swarms
-- **Novice**: Default when fewer than 3 skills exist
+- **Seed**: Default when fewer than 3 skills exist
 
 **Rules for graph updates:**
 - Add a node for every new skill generated (gap-fix or pattern-amplified)
@@ -596,24 +596,24 @@ Unlocked at this level:
 ```
 
 **Level unlock descriptions:**
-- L2 Apprentice: "Pattern detection active. I'll start noticing recurring
+- L2 Spark: "First energy detected. I'll start noticing recurring
   approaches in your work."
-- L3 Journeyman: "Research swarms available. I can now generate research
-  briefs for multi-agent investigation."
-- L4 Specialist: "Cross-skill connections unlocked. I'll link related
-  skills to create compound knowledge."
-- L5 Expert: "Skill fusion preview. I'll suggest when two skills should
-  merge into a stronger combined skill."
-- L6 Master: "Architecture intuition. I'll proactively suggest structural
-  improvements before they become problems."
-- L7 Grandmaster: "Meta-pattern recognition. I see patterns across
-  patterns and can generate second-order skills."
-- L8 Sage: "Predictive planning. My build plans now anticipate problems
-  before they surface."
-- L9 Oracle: "Full ecosystem awareness. I understand how every skill,
-  directive, and pattern connects."
-- L10 Transcendent: "You have built a truly intelligent agent. Your skill
-  tree is a masterwork."
+- L3 Sprout: "Breaking through. Research swarms available. I can now
+  generate research briefs for multi-agent investigation."
+- L4 Heartwood: "Inner core forming. Cross-skill connections unlocked.
+  I'll link related skills to create compound knowledge."
+- L5 Canopy: "Covering territory. Skill fusion preview. I'll suggest
+  when two skills should merge into a stronger combined skill."
+- L6 Taproot: "Going deep. Architecture intuition active. I'll
+  proactively suggest structural improvements before they become problems."
+- L7 Old Growth: "Accumulated wisdom. Meta-pattern recognition. I see
+  patterns across patterns and can generate second-order skills."
+- L8 Grove: "No longer a single tree. Predictive planning active. My
+  build plans now anticipate problems before they surface."
+- L9 Sovereign: "Full autonomy. Full ecosystem awareness. I understand
+  how every skill, directive, and pattern connects."
+- L10 Mycelium: "The invisible network. You have built a truly
+  intelligent agent. Your skill tree is a living ecosystem."
 
 Log to changelog:
 `[date] LEVEL_UP | [AgentName] | Level [N] [Title] | Total XP: [xp]`
