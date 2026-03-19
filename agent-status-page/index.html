@@ -1033,14 +1033,14 @@ const SKILL_GRAPH = {
     "agentClass": "Architect"
   },
   "activity": [
-    { "date": "2026-03-18", "event": "SESSION_END", "detail": "Agent Status Dashboard build session — Level 4 Specialist reached" },
-    { "date": "2026-03-14", "event": "TAPROOT_CREATED", "detail": "Memory Curator — pattern-amplified from 4 sessions of consistent memory management" },
-    { "date": "2026-03-12", "event": "TAPROOT_CREATED", "detail": "Cascade Planner — cross-linked with Plan Anchor for drift detection" },
-    { "date": "2026-03-10", "event": "TAPROOT_CREATED", "detail": "Style Guardian — gap-fix after inconsistent theming in sessions 5 & 6" },
-    { "date": "2026-03-08", "event": "RESEARCH_SWARM", "detail": "Research Sentinel created after swarm on D3 force-graph best practices" },
-    { "date": "2026-03-06", "event": "TAPROOT_CREATED", "detail": "Plan Anchor — gap-fix after scope drift in session 3" },
-    { "date": "2026-03-05", "event": "TAPROOT_CREATED", "detail": "Context Weaver — first pattern-amplified skill extracted" },
-    { "date": "2026-03-01", "event": "INIT", "detail": "Taproot initialized — North Star set, Planning Phase entered" }
+    { "date": "2026-03-18 21:36", "event": "SESSION_END", "detail": "Agent Status Dashboard build session, Level 4 Specialist reached" },
+    { "date": "2026-03-14 14:22", "event": "TAPROOT_CREATED", "detail": "Memory Curator, pattern-amplified from 4 sessions of consistent memory management" },
+    { "date": "2026-03-12 11:05", "event": "TAPROOT_CREATED", "detail": "Cascade Planner, cross-linked with Plan Anchor for drift detection" },
+    { "date": "2026-03-10 19:45", "event": "TAPROOT_CREATED", "detail": "Style Guardian, gap-fix after inconsistent theming in sessions 5 & 6" },
+    { "date": "2026-03-08 16:30", "event": "RESEARCH_SWARM", "detail": "Research Sentinel created after swarm on D3 force-graph best practices" },
+    { "date": "2026-03-06 10:15", "event": "TAPROOT_CREATED", "detail": "Plan Anchor, gap-fix after scope drift in session 3" },
+    { "date": "2026-03-05 09:00", "event": "TAPROOT_CREATED", "detail": "Context Weaver, first pattern-amplified skill extracted" },
+    { "date": "2026-03-01 08:00", "event": "INIT", "detail": "Taproot initialized, North Star set, Planning Phase entered" }
   ]
 };
 
@@ -1505,7 +1505,7 @@ function renderTradingCard() {
       <div class="tc-stat"><div class="tc-stat-val">${meta.totalSkills}</div><div class="tc-stat-lbl">Skills</div></div>
       <div class="tc-stat"><div class="tc-stat-val">${meta.totalSessions}</div><div class="tc-stat-lbl">Sessions</div></div>
     </div>
-    <div class="tc-footer">TAPROOT \u00b7 github.com/dufour9953/Meta-Skill</div>
+    <div class="tc-footer"><img src="avatar.png" alt="" style="width:16px;height:16px;border-radius:50%;vertical-align:middle;margin-right:4px">TAPROOT \u00b7 <a href="https://github.com/dufour9953/Meta-Skill" target="_blank">github.com/dufour9953/Meta-Skill</a></div>
   `;
 }
 
@@ -1519,6 +1519,20 @@ document.addEventListener("DOMContentLoaded", () => {
   renderGraph();
   renderTradingCard();
   setupEditableName();
+
+  // First-visit onboarding: prompt for agent name
+  if (!localStorage.getItem("taproot-onboarded")) {
+    setTimeout(() => {
+      const name = prompt("Welcome to Taproot! Name your agent:", "Taproot");
+      if (name && name.trim()) {
+        document.getElementById("agentName").textContent = name.trim();
+        localStorage.setItem("taproot-agent-name", name.trim());
+        const tcName = document.querySelector(".tc-info h3");
+        if (tcName) tcName.textContent = name.trim();
+      }
+      localStorage.setItem("taproot-onboarded", "true");
+    }, 500);
+  }
 });
 </script>
 </body>
