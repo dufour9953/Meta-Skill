@@ -109,6 +109,46 @@ tail -5 ./memory/CHANGELOG.md
 - **Keep assessments brief.** Before each prompt to Claude Code, note what
   you observe and what you're sending. Keep momentum.
 
+### File Ownership Declaration
+
+Before sending any task, declare the file scope to prevent overlap conflicts:
+
+```
+FILE OWNERSHIP:
+  WILL TOUCH:  [files this agent will modify]
+  READ ONLY:   [files it reads but must not modify]
+  OFF LIMITS:  [files the orchestrator or another agent owns]
+```
+
+No two agents edit the same file simultaneously. The orchestrator always
+has priority.
+
+### Structured Prompt Format
+
+When sending tasks to Claude Code, use this template:
+
+```
+[TASK]: One-line summary
+[SCOPE]: Files to create or modify
+[CONSTRAINTS]: What NOT to do
+[EXPECTED OUTPUT]: What the finished state looks like
+```
+
+### Handoff Verification Checklist
+
+Before terminating any session, verify:
+
+```
+HANDOFF CHECK:
+  [ ] memory/sessions/ has a new or updated session file
+  [ ] memory/CHANGELOG.md has been updated
+  [ ] memory/NORTH_STAR.md exists (if first session)
+  [ ] All expected output files exist on the filesystem
+```
+
+If any check fails, tell the agent: "Run your session-end protocol before
+exiting."
+
 ## Constraints
 
 - The orchestrator cannot read Claude Code's TUI output reliably in all
@@ -116,3 +156,7 @@ tail -5 ./memory/CHANGELOG.md
 - Claude Code's trust prompt requires confirmation on first launch per
   directory. After the first run, it's automatic.
 - If Claude Code becomes unresponsive after 3 attempts, restart the session.
+- Never send a task without declaring file ownership first.
+- Never terminate without running the handoff verification checklist.
+- Always use the structured prompt format for non-trivial tasks.
+
