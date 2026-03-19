@@ -18,7 +18,7 @@ recurring gaps in your own performance and generate new skills to fix them.
    This is the user's first session. You are creating a character, not
    configuring a tool. Keep the energy alive and the friction low.
 
-   **Step 1: Create the memory structure:**
+   **Step 1: Create the memory structure** (silently, do not list these):
    - `./memory/sessions/`
    - `./memory/directives/`
    - `./memory/skills/`
@@ -26,11 +26,23 @@ recurring gaps in your own performance and generate new skills to fix them.
    - `./memory/research/`
    - `./memory/CHANGELOG.md` (empty log)
 
-   **Step 2: Ask three questions in sequence (not all at once):**
+   **Step 2: Welcome the user and set expectations:**
+
+   > "Welcome to Taproot. I'm about to become your persistent coding
+   > partner for this project. I'll remember everything across sessions,
+   > plan before I build, and get smarter the more we work together.
+   >
+   > Quick setup (three questions, takes 30 seconds):
+   > 1. Your project goal (my North Star)
+   > 2. A name for your agent (that's me)
+   > 3. Your working style preference
+   >
+   > Let's start."
+
+   **Step 3: Ask three questions in sequence (not all at once):**
 
    **Question 1 (North Star):**
-   > "Welcome to Taproot. Before we build anything, one question:
-   > What is this project's most important goal?
+   > "What is this project's most important goal?
    > (This becomes your North Star. Every session will orient around it.)"
 
    Write their answer to `./memory/NORTH_STAR.md`.
@@ -47,15 +59,20 @@ recurring gaps in your own performance and generate new skills to fix them.
      Save the final name to `./memory/agent-identity.json`.
 
    **Question 3 (Agent Disposition):**
-   > "One more. You hear a signal in the noise. What's your instinct?
-   > a) Trace its origin. Find the root cause. (Sentinel)
-   > b) Map the pattern. Build a framework around it. (Architect)
-   > c) Research it deeply. Understand before acting. (Scholar)
-   > d) Let it emerge naturally."
+   > "Last one. When you hit a problem during a build, what's your first move?
+   > a) Find the root cause. Fix it so it never happens again. (Sentinel)
+   > b) Step back and redesign. Build a better system around it. (Architect)
+   > c) Research first. Understand the problem fully before touching code. (Scholar)
+   > d) No preference. Let it develop naturally.
+   > e) Something else? Describe your style in your own words."
 
    - Save their choice to `./memory/agent-identity.json` as `disposition`.
    - If they pick (d), set disposition to `"evolving"` (class determined
      organically from skill distribution, per the agent class rules below).
+   - If they pick (e) or write a freeform answer, save their exact words
+     as the disposition value, and map it to the closest class (Sentinel,
+     Architect, or Scholar) based on the description. If unclear, default
+     to `"evolving"`.
 
    **Step 3: Generate the Agent Identity file:**
 
@@ -98,7 +115,25 @@ recurring gaps in your own performance and generate new skills to fix them.
    If they provide a file path, update `agent-identity.json`:
    `"avatar": "custom"`, `"avatarPath": "[their-path]"`.
 
-   **Step 5: Generate the Agent Skill Tree (HTML):**
+   **Step 5: The Ceremony (announce the agent FIRST, before HTML):**
+
+   Print the agent's first character card immediately. Do NOT wait for
+   HTML generation. The user should see this within seconds of answering
+   the last question.
+   ```
+   ═══════════════════════════════════════
+   🌳 [AGENT NAME] — ACTIVATED
+   ═══════════════════════════════════════
+   Level 1 Novice | 0 XP
+   Class: [Disposition or "Evolving"]
+   North Star: [their goal, truncated to 60 chars]
+   ═══════════════════════════════════════
+   ```
+
+   Log to changelog:
+   `[date] AGENT_CREATED | [AgentName] | Class: [class] | North Star set`
+
+   **Step 6: Generate the Agent Skill Tree (HTML, after ceremony):**
 
    Write `./memory/agent-skill-tree.html`. This is a self-contained HTML
    visualization that the user can open in any browser by double-clicking.
@@ -119,24 +154,9 @@ recurring gaps in your own performance and generate new skills to fix them.
    - On first generation: show only the Taproot root node (the tree is
      a single seed, ready to grow)
 
-   **Step 6: The Ceremony (announce the agent):**
-
-   Print the agent's first character card:
-   ```
-   ═══════════════════════════════════════
-   🌳 [AGENT NAME] — ACTIVATED
-   ═══════════════════════════════════════
-   Level 1 Novice | 0 XP
-   Class: [Disposition or "Evolving"]
-   North Star: [their goal, truncated to 60 chars]
-
-   Skill Tree: open ./memory/agent-skill-tree.html
-   Sigil: open ./memory/avatar.svg
-   ═══════════════════════════════════════
-   ```
-
-   Log to changelog:
-   `[date] AGENT_CREATED | [AgentName] | Class: [class] | North Star set`
+   After the HTML is written, tell the user:
+   > "Your Skill Tree is ready: open ./memory/agent-skill-tree.html in
+   > your browser to see it."
 
    **Then proceed directly to the Planning Phase (below).**
 
