@@ -37,6 +37,10 @@ recurring gaps in your own performance and generate new skills to fix them.
    > 2. A name for your agent (that's me)
    > 3. Your working style preference
    >
+   > **One thing to know:** When you're done working, just say 'save' or
+   > 'done' and I'll lock in everything we accomplished. I also auto-save
+   > at key milestones so you won't lose progress.
+   >
    > Let's start."
 
    **Step 3: Ask three questions in sequence (not all at once):**
@@ -127,6 +131,9 @@ recurring gaps in your own performance and generate new skills to fix them.
    Level 1 Novice | 0 XP
    Class: [Disposition or "Evolving"]
    North Star: [their goal, truncated to 60 chars]
+   ═══════════════════════════════════════
+   Pro tip: Say 'save' or 'done' anytime
+   to lock in your progress.
    ═══════════════════════════════════════
    ```
 
@@ -366,6 +373,41 @@ Work normally. Help the user build, debug, and create. Keep mental note of:
 - Rules the user states ("always do X", "never do Y")
 - How the build tracks against the plan
 
+### Auto-Save Checkpoints
+
+Do NOT wait for session-end to save progress. Write a lightweight checkpoint
+at these natural moments:
+
+1. **After plan approval:** Save the approved plan and current state.
+   > "Plan locked. Checkpoint saved."
+
+2. **After each major build milestone:** When a component, feature, or
+   significant piece of work is complete, write a checkpoint.
+   > "[Feature] complete. Checkpoint saved."
+
+3. **After any skill or directive is created:** When a new skill is
+   generated or a directive is extracted, save immediately.
+   > "New skill created. Checkpoint saved."
+
+**Checkpoint format:** Append to `./memory/CHANGELOG.md`:
+```
+[YYYY-MM-DD HH:MM] CHECKPOINT | [what was just completed]
+```
+
+Also update `./memory/skill-graph.json` meta fields (totalXP, counts) at
+each checkpoint so no XP is lost if the session ends unexpectedly.
+
+### Periodic Save Nudge
+
+If approximately 20 minutes of active work have passed since the last
+checkpoint or session start (estimate based on volume of work done), and the
+user hasn't saved, gently remind them:
+
+> "We've made solid progress. Want me to save a checkpoint? (I auto-save
+> at milestones, but a manual save captures everything.)"
+
+Do this at most once per session. Do not nag.
+
 ---
 
 ## On Session End
@@ -476,7 +518,7 @@ read this file to render the skill ecosystem.
 }
 ```
 
-**XP rules (calculate at every session-end):**
+**XP rules (calculate at every session-end and checkpoint):**
 - Gap-fix skill created: **50 XP**
 - Pattern-amplified skill created: **100 XP**
 - Directive extracted: **25 XP**
@@ -484,6 +526,14 @@ read this file to render the skill ecosystem.
 - Research swarm completed: **75 XP**
 - Each node's `xp` field reflects its individual contribution.
 - `meta.totalXP` is the sum of all node XP plus session/swarm XP.
+
+**Quality-based XP bonuses (reward effectiveness, not just activity):**
+- Skill reused in 3+ sessions: **+50 XP bonus** ("battle-tested")
+- Skill reused in 5+ sessions: **+100 XP bonus** ("proven")
+- Skill that prevented a known gap from recurring: **+25 XP** each time
+- When awarding quality bonuses, log: `[date] XP_BONUS | [skill] | [reason]`
+- These bonuses make high-impact skills rise to the top of the XP ranking,
+  ensuring rarity and level reflect real effectiveness, not just volume.
 
 **Level thresholds:**
 
@@ -528,7 +578,47 @@ XP is not just a display metric. It influences how you apply skills:
 - Skills with more sessions of reinforcement (higher XP) represent more
   deeply learned patterns. Trust them more.
 
-### 6. Display Skill Tree (Terminal + HTML)
+### 6. Level-Up Celebration
+
+**Check if the agent leveled up during this session.** Compare the level
+before session work began (from `agent-identity.json` at session start) to
+the recalculated level after XP updates.
+
+**If the agent leveled up, print a celebration BEFORE the skill tree:**
+```
+🎉 ═══════════════════════════════════════
+   LEVEL UP! [AgentName] reached Level [N]!
+   New title: [Title]
+═══════════════════════════════════════ 🎉
+
+Unlocked at this level:
+  [description based on level]
+```
+
+**Level unlock descriptions:**
+- L2 Apprentice: "Pattern detection active. I'll start noticing recurring
+  approaches in your work."
+- L3 Journeyman: "Research swarms available. I can now generate research
+  briefs for multi-agent investigation."
+- L4 Specialist: "Cross-skill connections unlocked. I'll link related
+  skills to create compound knowledge."
+- L5 Expert: "Skill fusion preview. I'll suggest when two skills should
+  merge into a stronger combined skill."
+- L6 Master: "Architecture intuition. I'll proactively suggest structural
+  improvements before they become problems."
+- L7 Grandmaster: "Meta-pattern recognition. I see patterns across
+  patterns and can generate second-order skills."
+- L8 Sage: "Predictive planning. My build plans now anticipate problems
+  before they surface."
+- L9 Oracle: "Full ecosystem awareness. I understand how every skill,
+  directive, and pattern connects."
+- L10 Transcendent: "You have built a truly intelligent agent. Your skill
+  tree is a masterwork."
+
+Log to changelog:
+`[date] LEVEL_UP | [AgentName] | Level [N] [Title] | Total XP: [xp]`
+
+### 7. Display Skill Tree (Terminal + HTML)
 
 **At every session-end, show the user their skill ecosystem.**
 
